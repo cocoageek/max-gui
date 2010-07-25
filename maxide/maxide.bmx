@@ -1,249 +1,13 @@
 
-' maxide.bmx - blitzmax native integrated development environment
+' maxide.bmx 
 
-' by simonarmstrong@blitzbasic.com
+' BlitzMax native Integrated Development Environment
 
-' released under the Blitz Shared Source Code License 2005
-' released into the public domain 2006
-
-' requires MaxGui modules to run
-
-' v140
-' Completely nuked syncmods stuff.
-' Fixed enter-key not working in Go-To requester on Mac.
-
-' v138
-' Added .cc, .as, .bbx, .java, .cs files to file-filter list.
-' Fixed FLTK activation issue when returning from requesters.
-
-' v137
-' Re-added mysteriously disappeared ranlib stuff.
-
-' v136
-' Fixed "Options" dialog Poll() method.
-
-' v134
-' Added about requester.
-' Added bracket matching.
-' Added syntax highlighting for numbers.
-' Added multi-language support to MaxIDE.
-' Significantly improved debugger performance esp. when dealing with large strings.
-' More fixes addressing project folder behavior and loading.
-' Added integer text filter to TGotoRequester.
-' Requesters are now all standard windows (i.e. not tool windows).
-' Removed toolbar hack as this behaviour has now been standardized in the latest MaxGUI.
-' Removed BRL.Retro dependence.
-' Fixed autocaps.
-' Replaced several index iterators with purposefully defined For loop equivalents.
-' Cancelling 'Add Project' window now deletes unwanted project.
-
-' v132
-' added runtime check for write-access inside BlitzMax installation path
-
-' v130
-' attempt to fix refresh problem when restoring project folders
-' fixed crash when using CloseAll()
-' fixed memory leak when switching between open source code
-' fixed command line requester events
-' tweaked HighlightLine() so that it doesn't highlight any trailing Chr(10) or Chr(13).
-
-' v129
-' swapped out splitter for improved MaxGUI.ProxyGadgets version (user splitter position and flip settings are reset)
-' added HighlightLine() method to avoid highlighting preceeding white space when debugging
-' fixed disabled step controls when encountering a second DebugStop after resuming execution
-' fixed another "New Project" bug
-' swapped out awkward four fingered hotkey combination for "Close Other Tabs"
-' added hotkey handling code for requester Cut, Copy and Paste operations
-
-' v128
-' added "Close Other Tabs" to file menu, and fixed new project bug
-' REQUIRES MAXGUI v1.19 OR HIGHER AND COMPATIBLE MAXGUI DRIVER (AVAILABLE VIA SVN)
-' tweaked debugger handling for improved stability/performance
-' added new StripWhitespace() method to TSearchRequester for showing shorter tooltips
-' inherited window hiding focus fix from the Windows MaxGUI driver
-' added call to RefreshToolbar() immediately after a process has completed and after continuing program execution
-' added Ctrl+P keyboard shortcut for printing
-' fixed text-area background color picker not responding when clicked
-' new font options for navbar/output (now reads settings from the "navi_style" line in INI file to bump user settings)
-' whoops, tool windows are *definitely* now children to the main window
-
-' v127
-' tweaked project manager to fix deselection when "Move Up" or "Move Down" was pressed
-' most requester events now test for EventID() so mouse events are ignored in GTK module
-' finished off the find-in-files tool someone started (really useful)
-' requester dialog boxes are now tool windows and children to the main window to fix focusing issues
-' tweaked requester layout so that they look neater
-' dragbar is now a panel not a canvas
-
-' v126
-' changed highlighter to include . as token terminator
-' changed output to send 13/10 at end of win32 line inputs
-' stopped code view parse on non bmx files
-' fixed endrem on lastline overrun
-
-' v125
-' fixed overrun in autoindent under cocoa
-' new sort option for code nodes and expanded data
-' new system hotkeys override option (alt arrow tabbing in win32)
-' new menu actions for file nodes including refresh, browse and shell
-' new subversion support started for project version control
-' added event filter before activerequester.poll to remove unrecognized gtkmaxgui events
-
-' v124
-' fixed debugger writing to terminated process
-
-' v123
-' inherited realpath fix for win32 lan paths
-
-' v122
-' added fix for unblock aligned indenting undo
-' actively remove chr(0) sent to output panel
-' added FILETYPE_FILE check to opencode.create
-
-' v121
-' stopped reset of scroll position when tabbing
-' refixed navbar view indexing
-' fixed commands.txt parser breaking on OR char - findlast("|")
-' added external help option for linux users
-' open help and projects nodes on startup
-' add doc modules option to program menu and fixed syncmods so no restart required
-' fixed wrong window activation ugliness in TRequester.Hide
-' fixed TDebugTree.SetStack synchronization bug
-' added autobackup code to SaveSource method
-' fixed autoindent bug including tabs to the right of the cursor
-
-' v120
-' Ripped out isupdate stuff
-' About requester now shows runtime BCC version
-
-' v118
-' Added file filter to SaveAs requester
-' Edit method of TOpenCode now activates cursor and refreshes status
-' TQuickHelp tokenizer now uses faster TToken map
-' ReadSource and WriteSource now use unicode LoadText and SaveText commands
-
-' v112b
-' added .doc file type to filters list
-' added trycatch for bmxpath not found
-' prepends bmx filenames loaded from help with "." to protect original source
-' fixed unblanced quotes in wordatpos() stuffing up quick help
-' fixed exception when debugging function pointer values
-
-' v112
-' isupgrade - version check on ini file for ranlibdir and quick build disable
-' debug step tools now respect cancontinue flag
-' tidied up debug stdio buffers and flushing of process pipes
-' linux defaults for closedocument-CtrlW nextdoc-AltRight prevdoc-AltLeft
-' end of lines converted to chr(13)+chr(10) for all saved source files
-' ReplaceAll uses locktextarea for speedup
-' added print option for helppage
-' filtering tab key in opencode for original block in/outdent
-' removed vertical tabs from source
-' added .bbdoc filetype to filters$
-' fixed null href help tree entries (index node)
-' new textareafilter code for the Ouput console emulator
-' refreshes pointer in splitter on EVENT_MOUSEMOVE
-
-' v111
-' fixed open locked file not found at startup crash
-' buildandrun continues from debugstop else kills task and rebuilds
-' fixed bug on freshly loaded source being dirty
-' fixed bug with options cancel
-' MacOS specific hotkey bindings updated
-' added .m to file FILTERS$
-' adjusted GOTO and IDEOptions requesters
-
-' v110
-' DebugSource now calls ShowGadget on IDE window to bring debugger to front
-
-' v109
-' fixed WordAtPos to include underscore
-
-' v108
-' windows release version
-
-' v107
-' activate current panel when window receives focus
-' fixed multiple lock build file bug
-' fixed command highlighting for functions with # and ! return types
-' sourcefile already open check now case insensitive
-' block indent outdent now ctrl-[ and ctrl-]
-' commandline args fixed
-
-' v106b
-' new defaults
-' fixed replace all garbage
-' removed extra endrem highlight
-
-' v106
-' added demo version support
-' fixed delete / backspace undo redo issues
-' added syntaxhighlight disable option
-' fixed block indent / outdent highlighting issue
-' added flushmem to replaceall loop
-' set window title to full path of current document
-' fixed double highlight for endrem
-
-' v105c
-' code view now includes labels etc. on first line
-' textarea activated when panel open
-' autohide output on exit now always returns to last active panel
-' optimized code change algorithm
-' like compiler, rem and endrem must be first code on line
-' fixed up linux line spacing, font selection and code tree / create panel crashes
-' new linux help system, style setting and popup menu support
-
-' v105b
-' added tabbing support in dialogs
-' fixed pollsystem event debacle
-' fixed lineselection out of view
-' fixed highlighting for pasting code blocks
-' fixed treeview memory leak and speedissues
-' uses -x switch from bmk for build and run option
-' debugging now opens source when stepping in
-
-' v105
-' activating window selects current panel
-' fixed closing output window causing crash
-' frees gadgets
-' dirty flags now clears only if source=file and undobuffer=empty
-' tidied up console window madness
-' fixed gcc error check hang
-' fixed label detection in code view
-' fixed debugger crash with local block variable decls
-' fixed codenode refresh with saveas
-
-' v104
-' fixed debug tree update and debugreset
-' fixed incorrect navbar size for maximized window
-' added \ option
-' notify gcc compiler errors in output
-
-' v103
-' navbar options left/right
-' added copy paste menu for output window
-' added font color options for output and navbar windows
-' fixed win32 paste from clipboard to use plain ascii
-' stdio debugger handler
-' save currentpanel, cursorpositions
-' replace default "~\" requestfile path with a currentpath
-' fixed pipe handling problem in quickhelp
-
-' v102
-' specify openfile from commandline
-' hides main window till all files openned
-' checks window bounds against desktop size
-' added deferred capitalizing cludge
-' fixed rem/endrem updating problem
-' fixed highlight / redraw noise
-' drag&drop file support added
-' dropdown menu in textarea added
-' run with commandline arguments
-' block indent/outdent
-' fixed drag&drop text crash
-' added escape handler to output window, removed autohide
-
-' for the free community edition please visit http://sourceforge.net/projects/blitzmax-ide/
+' v150 - beta
+' combined with MaxGui modules into 2010 BSD License release
+' new BSD license and 2010 copyright notices added
+' .wiki and .bbx file types added to project browser
+' changed svn path for MacOS to usr/bin
 
 Strict
 
@@ -253,10 +17,6 @@ Import MaxGUI.ProxyGadgets
 ?Win32
 Import "maxicons.o"
 ?
-
-'Import bah.gtkmaxgui
-'Import bah.gtkwebgtkhtml
-'Import bah.gtkwebmozilla
 
 Import brl.eventqueue
 Import brl.standardio
@@ -271,9 +31,12 @@ Import brl.maxutil
 Incbin "bmxlogo.png"
 Incbin "toolbar.png"
 Incbin "splash.png"
+
 Incbin "default.language.ini"
+Incbin "license.txt"
 
 Const DEFAULT_LANGUAGEPATH$ = "incbin::default.language.ini"
+Const BSDLICENSE$ = "incbin::license.txt"
 
 ?Linux
 Incbin "window_icon.png"
@@ -281,7 +44,7 @@ Incbin "window_icon.png"
 
 AppTitle = "MaxIDE"
 
-Const IDE_VERSION$="1.40"
+Const IDE_VERSION$="1.50 beta"
 Const TIMER_FREQUENCY=15
 
 ?Win32
@@ -309,13 +72,13 @@ Const ABOUTDEMO$=..
 "This demo features both the core BlitzMax package and optional MaxGUI module.~n~n"+..
 "Please note that the MaxGUI module must be purchased separately."
 
-Const FileTypes$="bmx,bbdoc,txt,ini,doc,plist,bb,cpp,c,cc,m,cxx,s,glsl,hlsl,lua,py,h,hpp,html,htm,css,js,bat,mm,as,java,bbx,cs"
+Const FileTypes$="bmx,bbdoc,txt,ini,doc,plist,bb,cpp,c,cc,m,cxx,s,glsl,hlsl,lua,py,h,hpp,html,htm,css,js,bat,mm,as,java,bbx,cs,wiki,bbx"
 Const FileTypeFilters$="Code Files:"+FileTypes$+";All Files:*"
 
 Const HOMEPAGE$="/docs/html/index.html"
 
 ?MacOS
-Global SVNCMD$="/usr/local/bin/svn"
+Global SVNCMD$="/usr/bin/svn"
 Const LABELOFFSET=2
 ?Win32
 Global SVNCMD$="svn"
@@ -491,18 +254,18 @@ Type TQuickHelp
 	End Method
 	
 	Function LoadCommandsTxt:TQuickHelp(bmxpath$)
-		Local	text$
+		Local	Text$
 		Local	qh:TQuickHelp
 		Local	i:Int,c,p,q
 		Local	token$,help$,anchor$
 		Try
-			text=CacheAndLoadText(bmxpath+"/docs/html/Modules/commands.txt")
+			Text=CacheAndLoadText(bmxpath+"/docs/html/Modules/commands.txt")
 		Catch exception:Object
 			Return Null
 		EndTry
-		If Not text Return Null
+		If Not Text Return Null
 		qh=New TQuickHelp
-		For Local l$ = EachIn text.Split("~n")
+		For Local l$ = EachIn Text.Split("~n")
 			For i=0 Until l.length
 				c=l[i]
 				If c=Asc("_") Continue
@@ -881,18 +644,14 @@ Type TAboutRequester Extends TRequester
 	Function Create:TAboutRequester(host:TCodePlay)
 		
 		Local abt:TAboutRequester = New TAboutRequester
-		abt.initrequester(host,"{{about_window_title}}",420,255,STYLE_CANCEL|STYLE_DIVIDER|STYLE_MODAL)
+		abt.initrequester(host,"{{about_window_title}}",420,340,STYLE_CANCEL|STYLE_DIVIDER|STYLE_MODAL)
 		
 		Local win:TGadget = abt.window, w = ClientWidth(abt.window)-12, h = ClientHeight(abt.window)
 		
-		abt.pnlLogo = CreatePanel(w-(64-6),0,64,64,win)
-		SetGadgetLayout abt.pnlLogo, EDGE_CENTERED, EDGE_ALIGNED, EDGE_ALIGNED, EDGE_CENTERED
 		
 		'abt.pnlLogo = CreatePanel(0,0,64,64,win)
 		'SetGadgetLayout abt.pnlLogo, EDGE_ALIGNED, EDGE_CENTERED, EDGE_ALIGNED, EDGE_CENTERED
 		
-		If Not pixLogo Then pixLogo = LoadPixmapPNG("incbin::bmxlogo.png")
-		SetGadgetPixmap abt.pnlLogo, pixLogo, PANELPIXMAP_CENTER
 		
 		Local y = 12
 		
@@ -901,19 +660,25 @@ Type TAboutRequester Extends TRequester
 		SetGadgetLayout abt.lblTitle, EDGE_ALIGNED, EDGE_ALIGNED, EDGE_ALIGNED, EDGE_CENTERED
 		y:+19
 		
-		abt.lblSubtitle = CreateLabel("Copyright Blitz Research Ltd.",6,y,w,22,win,LABEL_LEFT)
+		abt.lblSubtitle = CreateTextArea(6,y,w,140,win, TEXTAREA_WORDWRAP| TEXTAREA_READONLY)',LABEL_LEFT)
+		SetGadgetText abt.lblSubtitle,LoadString("incbin::license.txt")
 		SetGadgetFont abt.lblSubtitle, LookupGuiFont( GUIFONT_SYSTEM, 10, FONT_ITALIC )
 		SetGadgetLayout abt.lblSubtitle, EDGE_ALIGNED, EDGE_ALIGNED, EDGE_ALIGNED, EDGE_CENTERED
 		
-		y = 64
-		
+		y:+148
+
 		SetGadgetLayout( CreateLabel("",6,y,w,4,win,LABEL_SEPARATOR), EDGE_ALIGNED, EDGE_ALIGNED, EDGE_ALIGNED, EDGE_CENTERED )
-		
+
 		y:+(4+6)
+
+		abt.pnlLogo = CreatePanel(w-(64-6),y,64,64,win)
+		SetGadgetLayout abt.pnlLogo, EDGE_CENTERED, EDGE_ALIGNED, EDGE_ALIGNED, EDGE_CENTERED
+		If Not pixLogo Then pixLogo = LoadPixmapPNG("incbin::bmxlogo.png")
+		SetGadgetPixmap abt.pnlLogo, pixLogo, PANELPIXMAP_CENTER
 		
 		Local tmpGadget:TGadget
 		
-		For y = y Until (255-21) Step 22
+		For Local p=1 To 8
 			
 			tmpGadget = CreateLabel("",6,y,135,22,win,LABEL_LEFT)
 			SetGadgetLayout( tmpGadget, EDGE_ALIGNED, EDGE_RELATIVE, EDGE_ALIGNED, EDGE_CENTERED )
@@ -923,7 +688,8 @@ Type TAboutRequester Extends TRequester
 			SetGadgetLayout( tmpGadget, EDGE_RELATIVE, EDGE_ALIGNED, EDGE_ALIGNED, EDGE_CENTERED )
 			DelocalizeGadget tmpGadget
 			abt.lblRightAligned:+[tmpGadget]
-			
+						
+			y:+22
 		Next
 		
 		abt.hypBlitz = CreateHyperlink("http://www.blitzbasic.com/",6,(h-28),200,26,win,LABEL_LEFT)
@@ -990,21 +756,21 @@ Type TGotoRequester Extends TRequester
 	End Method
 
 	Method Poll()
-		Local	line,data,text$
+		Local	Line,data,Text$
 		Select EventSource()
 			Case linenumber
 				If EventID() = EVENT_GADGETACTION
-					text = GadgetText(linenumber)
-					If text And (Int(text) <> text) Then SetGadgetText linenumber, Int(text)
+					Text = GadgetText(linenumber)
+					If Text And (Int(Text) <> Text) Then SetGadgetText linenumber, Int(Text)
 				EndIf
 			Case window
 				If EventID()=EVENT_WINDOWCLOSE
 					Hide
 				EndIf
 			Case ok
-				line=Int(GadgetText(linenumber))
+				Line=Int(GadgetText(linenumber))
 				Hide
-				host.activepanel.Invoke TOOLGOTO,String(line)
+				host.activepanel.Invoke TOOLGOTO,String(Line)
 			Case cancel
 				Hide
 			Default
@@ -1071,22 +837,22 @@ End Type
 Type TTextStyle
 
 	Field	label:TGadget,panel:TGadget,combo:TGadget
-	Field	underline:TGadget, color:TColor
+	Field	underline:TGadget, Color:TColor
 	Field	flags
 	
 	Method Set(rgb,bolditalic)
-		color.set(rgb)
+		Color.set(rgb)
 		flags=bolditalic
 	End Method
 
 	Method Format(textarea:TGadget,pos,length,emphasise:Int = False)
 		Local tmpFlags:Int = flags
 		If emphasise Then tmpFlags:|TEXTFORMAT_BOLD
-		FormatTextAreaText textarea,color.red,color.green,color.blue,tmpFlags,pos,length
+		FormatTextAreaText textarea,Color.red,Color.green,Color.blue,tmpFlags,pos,length
 	End Method
 
 	Method ToString$()
-		Return ""+color.red+","+color.green+","+color.blue+","+flags
+		Return ""+Color.red+","+Color.green+","+Color.blue+","+flags
 	End Method
 
 	Method FromString(s$)
@@ -1094,9 +860,9 @@ Type TTextStyle
 		p=s.Find(",")+1;If Not p Return
 		q=s.Find(",",p)+1;If Not q Return
 		r=s.Find(",",q)+1;If Not r Return
-		color.red=Int(s[..p-1])
-		color.green=Int(s[p..q-1])
-		color.blue=Int(s[q..r-1])
+		Color.red=Int(s[..p-1])
+		Color.green=Int(s[p..q-1])
+		Color.blue=Int(s[q..r-1])
 		flags=Int(s[r..])
 	End Method
 
@@ -1104,7 +870,7 @@ Type TTextStyle
 		Select EventSource()
 			Case panel
 				If EventID()=EVENT_MOUSEDOWN
-					Return color.Request()
+					Return Color.Request()
 				EndIf
 			Case combo
 				flags=(flags&~3)|SelectedGadgetItem(combo)
@@ -1116,7 +882,7 @@ Type TTextStyle
 	End Method
 	
 	Method Refresh()
-		SetPanelColor panel,color.red,color.green,color.blue
+		SetPanelColor panel,Color.red,Color.green,Color.blue
 		SelectGadgetItem combo,flags&3
 		SetButtonState(underline,(flags&TEXTFORMAT_UNDERLINE <> 0))
 	End Method
@@ -1124,7 +890,7 @@ Type TTextStyle
 	Function Create:TTextStyle(name$,xpos,ypos,window:TGadget)
 		Local	s:TTextStyle
 		s=New TTextStyle
-		s.color=New TColor
+		s.Color=New TColor
 		s.label=CreateLabel(name,xpos,ypos+4,90,24,window)
 		s.panel=CreatePanel(xpos+94,ypos,24,24,window,PANEL_BORDER|PANEL_ACTIVE)
 		SetPanelColor s.panel,255,255,0
@@ -1295,7 +1061,7 @@ Type TOptionsRequester Extends TPanelRequester
 	Method Snapshot()
 		If Not undo undo=CreateBank(8192)
 		Local stream:TStream=CreateBankStream(undo)
-		write stream
+		Write stream
 		stream.close
 	End Method
 	
@@ -2133,8 +1899,8 @@ Type THelpPanel Extends TToolPanel
 		
 		If FileType( host.bmxpath+"/docs/html/Modules/commands.txt" )=FILETYPE_FILE
 			Local comm$=CacheAndLoadText( host.bmxpath+"/docs/html/Modules/commands.txt" )
-			For Local line$=EachIn comm.Split( "~n" )
-				Local bits$[]=line.Split( "|" )
+			For Local Line$=EachIn comm.Split( "~n" )
+				Local bits$[]=Line.Split( "|" )
 				If bits.length<>2 Continue
 				Local i=bits[0].Find( " : " )
 				If i<>-1 bits[0]=bits[0][..i]
@@ -2254,17 +2020,17 @@ End Type
 Type TSearchResult
 	
 	Field filepath$
-	Field char%, line%
+	Field char%, Line%
 	Field linestring$
 	
 	Method AddToListbox( pGadget:TGadget )
-		AddGadgetItem pGadget, "[" + line + ", " + char + "] " + filepath, 0, -1, StripWhitespace(linestring,char), Self
+		AddGadgetItem pGadget, "[" + Line + ", " + char + "] " + filepath, 0, -1, StripWhitespace(linestring,char), Self
 	EndMethod
 	
 	Method Set:TSearchResult(pFilePath$,pChar%,pLine%,pLineString$)
 		filepath = pFilePath
 		char = pChar
-		line = pLine
+		Line = pLine
 		linestring = pLineString
 		Return Self
 	EndMethod
@@ -2305,7 +2071,7 @@ Type TSearchRequester Extends TRequester
 					Case EVENT_GADGETACTION
 						Local tmpSearchResult:TSearchResult = TSearchResult(EventExtra())
 						If tmpSearchResult Then
-							host.DebugSource( tmpSearchResult.filepath, tmpSearchResult.line, tmpSearchResult.char )
+							host.DebugSource( tmpSearchResult.filepath, tmpSearchResult.Line, tmpSearchResult.char )
 							'Hide()
 						EndIf
 				EndSelect
@@ -2901,23 +2667,23 @@ Type TFolderNode Extends TNode
 	Method Invoke(command,argument:Object=Null)
 		Local host:TCodePlay
 		Local cmd,p
-		Local line$
+		Local Line$
 	
 		host=ProjectHost()
 		If Not host Notify LocalizeString("{{svn_notification_nodehostnotfound}}");Return
 		
 		Select command
 		Case TOOLOUTPUT
-			line$=String(argument)
-			p=line.find(" revision ")
+			Line$=String(argument)
+			p=Line.find(" revision ")
 			If p>-1
-				SetVersion Int(line[p+10..])
+				SetVersion Int(Line[p+10..])
 			EndIf
 '			If line[..12]="At revision "
 '			DebugLog "TOOLOUTPUT:"+line
 			Return
 		Case TOOLERROR
-			line$=String(argument)
+			Line$=String(argument)
 '			DebugLog "TOOLERROR:"+line
 			Return
 		Case TOOLMENU
@@ -3337,7 +3103,7 @@ End Type
 
 Type TScope Extends TVar
 	Field	tree:TDebugTree
-	Field	file$,line,column
+	Field	file$,Line,column
 
 	Method Invoke(command,argument:Object=Null)
 		Select command
@@ -3349,7 +3115,7 @@ Type TScope Extends TVar
 	Method SetScope(s:TScope)
 		Local	v:TVar
 		file=s.file
-		line=s.line
+		Line=s.Line
 		column=s.column
 		s.obj=Self
 		SetValue s
@@ -3362,7 +3128,7 @@ Type TScope Extends TVar
 		Local r=f.Find(",")+1
 		If p And q And r
 			file=f[..p-1]
-			line=Int(f[p..r-1])
+			Line=Int(f[p..r-1])
 			column=Int(f[r..q-1])
 		EndIf
 		obj=Self
@@ -3488,7 +3254,7 @@ Type TDebugTree Extends TVar
 	Method SelectScope(scope:TScope,open)
 		If Not scope Return		
 		host.SetMode host.DEBUGMODE	' simon was here, smoved from reset
-		If scope.file host.DebugSource scope.file,scope.line,scope.column
+		If scope.file host.DebugSource scope.file,scope.Line,scope.column
 		scope.Open()
 '		If open
 '			SelectTreeViewNode scope.node
@@ -3496,21 +3262,21 @@ Type TDebugTree Extends TVar
 '		EndIf
 	End Method
 
-	Method ProcessError$(line$)
+	Method ProcessError$(Line$)
 		Local	p
 		
-		While p < line.length
-			If line[p]=$3E Then p:+1 Else Exit		'">"
+		While p < Line.length
+			If Line[p]=$3E Then p:+1 Else Exit		'">"
 		Wend
 		
-		If p = line.length Return
-		If p Then line = line[p..]
+		If p = Line.length Return
+		If p Then Line = Line[p..]
 
-		If Not line.StartsWith("~~>") Return line
-		line=line[2..]
+		If Not Line.StartsWith("~~>") Return Line
+		Line=Line[2..]
 
 		If invar
-			If line="}"
+			If Line="}"
 				SetValue invar		'root
 				invar.Free
 				invar=Null
@@ -3518,14 +3284,14 @@ Type TDebugTree Extends TVar
 '				If Not invar.name
 '					invar.name=line
 '				Else
-					invar.AddVar line
+					invar.AddVar Line
 '				EndIf
 			EndIf
 			Return
 		EndIf
 		
 		If instack 			
-			If line="}"
+			If Line="}"
 				
 				SetStack instack
 				instack=Null
@@ -3540,11 +3306,11 @@ Type TDebugTree Extends TVar
 			EndIf
 			
 			If infile
-				If line="Local <local>"
+				If Line="Local <local>"
 				Else
 					inscope=New TScope
 '					Print "inscope.line="+line
-					inscope.name=line
+					inscope.name=Line
 					inscope.owner=Self
 					instack.AddLast inscope
 				EndIf
@@ -3553,28 +3319,28 @@ Type TDebugTree Extends TVar
 				Return
 			EndIf
 
-			If line.StartsWith("@") And line.Contains("<")
-				infile=line[1..]
+			If Line.StartsWith("@") And Line.Contains("<")
+				infile=Line[1..]
 			Else
-				If inscope inscope.AddVar line
+				If inscope inscope.AddVar Line
 			EndIf
 
 			Return
 		EndIf
 
-		If line.StartsWith("Unhandled Exception:")
-			inexception=line
+		If Line.StartsWith("Unhandled Exception:")
+			inexception=Line
 			host.output.WritePipe "t"
 			cancontinue=False
 			Return
 		EndIf
 
-		If line="StackTrace{"
+		If Line="StackTrace{"
 			instack=New TList
 			Return
 		EndIf
 
-		If line="Debug:" Or line="DebugStop:"
+		If Line="Debug:" Or Line="DebugStop:"
 			host.output.WritePipe "t"
 			If Not cancontinue Then
 				cancontinue=True
@@ -3583,12 +3349,12 @@ Type TDebugTree Extends TVar
 			Return
 		EndIf					
 		
-		If line.StartsWith("ObjectDump@")
-			p=line.find("{",11)
-			If p=-1 Return line
-			line=line[11..p]
+		If Line.StartsWith("ObjectDump@")
+			p=Line.find("{",11)
+			If p=-1 Return Line
+			Line=Line[11..p]
 			invar=New TVar
-			invar.obj=FindObj(line)
+			invar.obj=FindObj(Line)
 			invar.owner=Self
 			Return
 		EndIf
@@ -3950,21 +3716,21 @@ Type TOutputPanel Extends TToolPanel	'used build and run
 		ReadPipes(pipe,errpipe)
 		Local bytes:Byte[] = errbuffer.flushbytes()
 		If bytes
-			Local line$=String.FromBytes(bytes,Len bytes)
-			line=line.Replace(Chr(13),"")
-			If line<>">" Write line
+			Local Line$=String.FromBytes(bytes,Len bytes)
+			Line=Line.Replace(Chr(13),"")
+			If Line<>">" Write Line
 		EndIf
 	End Method
 		
 	Method ReadPipes(pipe:TPipeStream,errpipe:TPipeStream)
 		Local	status
-		Local	bytes:Byte[],line$
+		Local	bytes:Byte[],Line$
 
 		bytes=pipe.ReadPipe()
 		If bytes
-			line$=String.FromBytes(bytes,Len bytes)
-			line=line.Replace(Chr(13),"")
-			Write line
+			Line$=String.FromBytes(bytes,Len bytes)
+			Line=Line.Replace(Chr(13),"")
+			Write Line
 		EndIf
 		
 		If errpipe.ReadAvail() Then
@@ -3975,11 +3741,11 @@ Type TOutputPanel Extends TToolPanel	'used build and run
 		
 '		If bytes Write String.FromBytes(bytes,bytes.length)
 		While errbuffer.LineAvail()
-			line$=errbuffer.ReadLine()
-			line=host.debugtree.ProcessError(line)
-			If line
-				Write line+"~n"
-				err:+line+"~n"
+			Line$=errbuffer.ReadLine()
+			Line=host.debugtree.ProcessError(Line)
+			If Line
+				Write Line+"~n"
+				err:+Line+"~n"
 			EndIf
 		Wend
 		
@@ -4195,7 +3961,7 @@ Type TOpenCode Extends TToolPanel
 	End Function
 	
 	Method parsebmx(n:TCodeNode)
-		Local	src$,line,col
+		Local	src$,Line,col
 		Local	p,p1,r,t,m,f,l,e
 
 		src=cleansrcl
@@ -4276,17 +4042,17 @@ Type TOpenCode Extends TToolPanel
 		Return codenode
 	End Method
 	
-	Method HighlightLine(line,column = 0)
-		Local i:Int, tmpCharLineStart% = TextAreaChar(textarea,line)
-		Local tmpLine$ = TextAreaText( textarea, line, 1, TEXTAREA_LINES ).Replace("~r","").Replace("~n","")
+	Method HighlightLine(Line,column = 0)
+		Local i:Int, tmpCharLineStart% = TextAreaChar(textarea,Line)
+		Local tmpLine$ = TextAreaText( textarea, Line, 1, TEXTAREA_LINES ).Replace("~r","").Replace("~n","")
 		For i = column Until tmpLine.length
 			If IsNotAlpha(tmpLine[i]) Then tmpCharLineStart:+1 Else Exit
 		Next
-		SelectTextAreaText textarea,line-1,0,TEXTAREA_LINES
-		SelectTextAreaText textarea,line+1,0,TEXTAREA_LINES
+		SelectTextAreaText textarea,Line-1,0,TEXTAREA_LINES
+		SelectTextAreaText textarea,Line+1,0,TEXTAREA_LINES
 		If i = tmpLine.length Or ..
 		( TextAreaCharX( textarea, tmpCharLineStart + tmpLine.length-i ) - TextAreaCharX( textarea, tmpCharLineStart ) >= ClientWidth(textarea) ) Then
-			SelectTextAreaText textarea,line,1,TEXTAREA_LINES
+			SelectTextAreaText textarea,Line,1,TEXTAREA_LINES
 		Else
 			SelectTextAreaText textarea,tmpCharLineStart,tmpLine.length-i,TEXTAREA_CHARS
 		EndIf
@@ -4299,8 +4065,8 @@ Type TOpenCode Extends TToolPanel
 		ActivateGadget( textarea )
 	End Method
 
-	Method Debug(line,column)
-		HighlightLine( line-1 )
+	Method Debug(Line,column)
+		HighlightLine( Line-1 )
 		UpdateCursor()
 	End Method
 
@@ -4420,7 +4186,7 @@ Type TOpenCode Extends TToolPanel
 		SetTextAreaFont textarea,host.options.editfont
 		rgb=host.options.editcolor
 		SetTextAreaColor textarea,rgb.red,rgb.green,rgb.blue,True
-		rgb=host.options.styles[0].color
+		rgb=host.options.styles[0].Color
 		SetTextAreaColor textarea,rgb.red,rgb.green,rgb.blue,False
 		src=cleansrc
 		cleansrc=""
@@ -5267,8 +5033,8 @@ Type TOpenCode Extends TToolPanel
 				SetDirty False
 				host.SetTitle path
 			Case TOOLGOTO
-				Local line=Int(String(argument))
-				SelectTextAreaText textarea,line-1,0,TEXTAREA_LINES				
+				Local Line=Int(String(argument))
+				SelectTextAreaText textarea,Line-1,0,TEXTAREA_LINES				
 				UpdateCursor
 				ActivateGadget textarea		
 			Case TOOLFIND
@@ -5667,7 +5433,7 @@ Type TCodePlay
 		Local	stream:TStream = WriteFile(bmxpath+"/cfg/ide.ini")
 		If Not stream Return
 ' options
-		options.write(stream)
+		options.Write(stream)
 ' defaults		
 		stream.WriteLine "[Defaults]"
 		stream.WriteLine "ide_version="+IDE_VERSION$
@@ -5689,7 +5455,7 @@ Type TCodePlay
 			f$=panel.path
 			If f$ And Not IsTempPath(f$) stream.WriteLine "file_open="+f$
 		Next
-		projects.write(stream)	
+		projects.Write(stream)	
 		stream.close
 	End Method
 	
@@ -5724,7 +5490,7 @@ Type TCodePlay
 		RefreshToolbar()
 	End Method
 		
-	Method DebugSource(path$,line,column)
+	Method DebugSource(path$,Line,column)
 		Local	code:TOpenCode
 		path=FullPath(path)
 		code=OpenSource(path)
@@ -5734,7 +5500,7 @@ Type TCodePlay
 		EndIf
 		If debugcode And debugcode<>code Then debugcode.Edit()	'restore cursor etc.
 		debugcode=code
-		debugcode.debug(line,column)	
+		debugcode.debug(Line,column)	
 		ActivateWindow window
 		PollSystem
 	End Method
@@ -5893,12 +5659,12 @@ Type TCodePlay
 		Return cmdline
 	End Method
 
-	Method SetCommandLine(text$)
-		cmdline=text
+	Method SetCommandLine(Text$)
+		cmdline=Text
 	End Method
 	
-	Method SetStatus(text$)
-		SetStatusText window,text
+	Method SetStatus(Text$)
+		SetStatusText window,Text
 	End Method
 
 	Method Execute(cmd$,mess$="",post$="",home=True,tool:TTool=Null)
@@ -5906,7 +5672,7 @@ Type TCodePlay
 		output.execute cmd$,mess$,post$,home,tool
 	End Method
 
-	Method SelectError(path$,column,line)
+	Method SelectError(path$,column,Line)
 		Local	panel:TOpenCode,found
 		For panel=EachIn panels
 			If panel.path=path found=True;Exit
@@ -5914,13 +5680,13 @@ Type TCodePlay
 		If Not found panel=OpenSource(path)
 		If panel
 			SelectPanel panel
-			panel.Debug line,column
+			panel.Debug Line,column
 		EndIf
 	End Method
 	
 	Method ParseError(err$)
 		Local		mess$,file$,p,q
-		Local		line,column
+		Local		Line,column
 ' bcc error
 		If err$[..13]="Compile Error"
 			err=err[14..]
@@ -5936,10 +5702,10 @@ Type TCodePlay
 				If p=0 p=err.length
 				q=file.find(";",p)+1
 				If q=0 q=err.length
-				line=Int(file[p..q-1])
+				Line=Int(file[p..q-1])
 				column=Int(file[q..])
 				file=FullPath(file[..p-1])				
-				SelectError file,column,line
+				SelectError file,column,Line
 			EndIf
 			Notify LocalizeString("{{output_error_compileerror}}").Replace("%1",mess)
 			SetStatus mess
@@ -5959,10 +5725,10 @@ Type TCodePlay
 				q=mess.Find(":",p)
 				If q<>-1
 					file=mess[..p-1]
-					line=Int(mess[p..q])
-					If line
+					Line=Int(mess[p..q])
+					If Line
 						mess=mess[q+1..]
-						SelectError file,column,line
+						SelectError file,column,Line
 						Notify LocalizeString("{{output_error_compileerror}}").Replace("%1",mess)
 						Return
 					EndIf
